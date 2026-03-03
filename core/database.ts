@@ -4,7 +4,7 @@ const db = new DatabaseSync('./lsm.sqlite');
 
 db.exec(`
     PRAGMA foreign_keys = 1;
-    PRAGMA journal_mode = WAL;
+    PRAGMA journal_mode = DELETE;
     PRAGMA synchronous = NORMAL;
 
     PRAGMA cache_size = 2000;

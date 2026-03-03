@@ -1,13 +1,9 @@
-import { createServer } from 'node:http';
-import { Router } from './router.ts';
-import { customRequest } from './custom-request.ts';
-import { customResponse } from './custom-response.ts';
-import { criarAula, criarCurso, pegarAula, pegarAulas, pegarCurso, pegarCursos } from './database.ts';
+import { Core } from './core/core.ts';
+import { criarAula, criarCurso, pegarAula, pegarAulas, pegarCurso, pegarCursos } from './core/database.ts';
 
+const core = new Core();
 
-const router = new Router();
-
-router.post('/cursos', (req, res) => {
+core.router.post('/cursos', (req, res) => {
   const { slug, nome, descricao } = req.body;
   const criado = criarCurso({ slug, nome, descricao });
   if (criado) {
@@ -17,7 +13,7 @@ router.post('/cursos', (req, res) => {
   }
 });
 
-router.post('/aulas', (req, res) => {
+core.router.post('/aulas', (req, res) => {
   const { slug, nome, cursoSlug } = req.body;
   const criada = criarAula({ slug, nome, cursoSlug });
   if (criada) {
@@ -27,7 +23,7 @@ router.post('/aulas', (req, res) => {
   };
 });
 
-router.get('/cursos', (req, res) => {
+core.router.get('/cursos', (req, res) => {
   const cursos = pegarCursos();
   if (cursos && cursos.length) {
     res.status(200).json(cursos);
@@ -36,7 +32,7 @@ router.get('/cursos', (req, res) => {
   }
 });
 
-router.get('/curso', (req, res) => {
+core.router.get('/curso', (req, res) => {
   const slug = req.query.get('slug');
   if (!slug) {
     res.status(400).end('slug é obrigatório');
@@ -50,7 +46,7 @@ router.get('/curso', (req, res) => {
   }
 });
 
-router.get("/aulas", (req, res) => {
+core.router.get("/aulas", (req, res) => {
   const curso = req.query.get("curso");
   if (!curso) {
     res.status(400).end('curso é obrigatório');
@@ -64,7 +60,7 @@ router.get("/aulas", (req, res) => {
   }
 });
 
-router.get("/aula", (req, res) => {
+core.router.get("/aula", (req, res) => {
   const curso = req.query.get("curso");
   const slug = req.query.get("slug");
   if (!curso || !slug) {
@@ -79,19 +75,8 @@ router.get("/aula", (req, res) => {
   }
 });
 
-
-const server = createServer(async (request, response) => {
-  const req = await customRequest(request);
-  const res = customResponse(response);
-
-  const handler = router.find(req.method || '', req.pathname);
-  if (handler) {
-    handler(req, res);
-  } else {
-    res.status(404).end('Não encontrada');
-  }
+core.router.get("/", (req, res) => {
+  res.status(200).end("LMS API");
 });
 
-server.listen(3000, () => {
-  console.log('Server: http://localhost:3000');
-});
+core.init();
